@@ -1,5 +1,7 @@
 "use server";
 
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import type { SubmitMixState, SongComponent, TransitionNote } from "./types";
 import { getStorageProvider } from "@/lib/storage";
 import { buildMixSubmission } from "@/lib/storage/types";
@@ -60,12 +62,29 @@ export async function submitMix(
     transitions,
   });
 
+  let submissionId: string;
   try {
-    const submissionId = await storage.saveSubmission(submission);
-    return { success: true, message: "Your mix has been submitted!", submissionId };
-  } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Failed to save submission.";
-    return { success: false, message };
+    submissionId = await storage.saveSubmission(submission);
+  } catch (error) {
+    console.error("Failed to save mix submission:", error);
+    return {
+      success: false,
+      message: "Failed to save submission. Please contact us if this issue persists.",
+    };
   }
+
+  const cookieStore = await cookies();
+  cookieStore.set(
+    "mix_submission",
+    JSON.stringify({
+      submissionId,
+      name: name!,
+      email: email!,
+      reason: reason!,
+      songs,
+      transitions,
+    }),
+    { maxAge: 300, httpOnly: true, path: "/craft/success" }
+  );
+  redirect("/craft/success");
 }

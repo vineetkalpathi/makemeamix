@@ -1,8 +1,22 @@
+interface UserInfoSectionProps {
+  errors?: Record<string, string>;
+  name: string;
+  email: string;
+  reason: string;
+  onNameChange: (v: string) => void;
+  onEmailChange: (v: string) => void;
+  onReasonChange: (v: string) => void;
+}
+
 export default function UserInfoSection({
   errors,
-}: {
-  errors?: Record<string, string>;
-}) {
+  name,
+  email,
+  reason,
+  onNameChange,
+  onEmailChange,
+  onReasonChange,
+}: UserInfoSectionProps) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/[0.04] p-6">
       <h2 className="mb-6 text-xl font-bold">Your Information</h2>
@@ -18,6 +32,8 @@ export default function UserInfoSection({
             type="text"
             id="name"
             name="name"
+            value={name}
+            onChange={(e) => onNameChange(e.target.value)}
             className="w-full rounded-lg border border-white/15 bg-white/5 px-4 py-3 text-white placeholder-white/50 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20"
             placeholder="Your name"
             required
@@ -38,6 +54,8 @@ export default function UserInfoSection({
             type="email"
             id="email"
             name="email"
+            value={email}
+            onChange={(e) => onEmailChange(e.target.value)}
             className="w-full rounded-lg border border-white/15 bg-white/5 px-4 py-3 text-white placeholder-white/50 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20"
             placeholder="your@email.com"
             required
@@ -58,6 +76,8 @@ export default function UserInfoSection({
         <textarea
           id="reason"
           name="reason"
+          value={reason}
+          onChange={(e) => onReasonChange(e.target.value)}
           className="w-full rounded-lg border border-white/15 bg-white/5 px-4 py-3 text-white placeholder-white/50 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20"
           placeholder="Tell us about the occasion - sangeet, wedding dance, just chilling, etc."
           rows={3}

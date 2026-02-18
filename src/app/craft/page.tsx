@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useState, useActionState, useEffect, useRef } from "react";
 import { submitMix } from "./actions";
 import type { SongComponent, TransitionNote, SubmitMixState } from "./types";
 import UserInfoSection from "./components/UserInfoSection";
@@ -11,6 +11,17 @@ const initialState: SubmitMixState = { success: false, message: "" };
 
 export default function CraftPage() {
   const [state, formAction, isPending] = useActionState(submitMix, initialState);
+  const bannerRef = useRef<HTMLDivElement>(null);
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [reason, setReason] = useState("");
+
+  useEffect(() => {
+    if (state.message) {
+      bannerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [state.message]);
 
   const [songComponents, setSongComponents] = useState<SongComponent[]>([
     {
@@ -96,11 +107,8 @@ export default function CraftPage() {
         {/* Status Banner */}
         {state.message && (
           <div
-            className={`mb-6 rounded-lg border px-4 py-3 text-sm ${
-              state.success
-                ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-                : "border-red-400/30 bg-red-400/10 text-red-300"
-            }`}
+            ref={bannerRef}
+            className="mb-6 rounded-lg border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm text-red-300"
           >
             {state.message}
           </div>
@@ -108,7 +116,15 @@ export default function CraftPage() {
 
         {/* Form */}
         <form action={formAction} className="space-y-8">
-          <UserInfoSection errors={state.errors} />
+          <UserInfoSection
+            errors={state.errors}
+            name={name}
+            email={email}
+            reason={reason}
+            onNameChange={setName}
+            onEmailChange={setEmail}
+            onReasonChange={setReason}
+          />
 
           {/* Hidden inputs for dynamic data */}
           <input type="hidden" name="songs" value={JSON.stringify(songComponents)} />

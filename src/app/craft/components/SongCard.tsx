@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import YouTubePreview from "./YouTubePreview";
-import { parseYouTubeUrl, isPotentialYouTubeUrl } from "../../utils/youtube";
+import { parseYouTubeUrl, isPotentialYouTubeUrl } from "@/lib/utils/youtube";
 import ValidationStatus from "./ValidationStatus";
 import type { SongComponent } from "../types";
 
