@@ -6,7 +6,7 @@ import type {
   StoredSubmission,
 } from "./types";
 
-const SHEET_NAME = "Submissions";
+const SHEET_NAME = "submissions";
 
 // Columns: submission_id | timestamp | name | email | purpose | song_number | youtube_url | start_time | end_time | song_notes | transition_notes
 const COL = {
