@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState, useEffect, useRef } from "react";
+import { useState, useActionState, useEffect, useRef, useCallback } from "react";
 import { submitMix } from "./actions";
 import type { SongComponent, TransitionNote, SubmitMixState } from "./types";
 import UserInfoSection from "./components/UserInfoSection";
@@ -12,6 +12,13 @@ const initialState: SubmitMixState = { success: false, message: "" };
 export default function CraftPage() {
   const [state, formAction, isPending] = useActionState(submitMix, initialState);
   const bannerRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  const handleConfirmSubmit = useCallback(() => {
+    setShowConfirmModal(false);
+    formRef.current?.requestSubmit();
+  }, []);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -115,7 +122,7 @@ export default function CraftPage() {
         )}
 
         {/* Form */}
-        <form action={formAction} className="space-y-8">
+        <form ref={formRef} action={formAction} className="space-y-8">
           <UserInfoSection
             errors={state.errors}
             name={name}
@@ -192,8 +199,9 @@ export default function CraftPage() {
           {/* Submit Button */}
           <div className="flex justify-center pt-8">
             <button
-              type="submit"
+              type="button"
               disabled={isPending}
+              onClick={() => setShowConfirmModal(true)}
               className="inline-flex items-center gap-2 rounded-full bg-blue-500 px-8 py-4 text-lg font-semibold text-white shadow-[0_8px_24px_rgba(99,102,241,0.45)] transition-colors hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? "Submitting..." : "Submit Your Mix"}
@@ -216,6 +224,44 @@ export default function CraftPage() {
           </div>
         </form>
       </section>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+          onClick={() => setShowConfirmModal(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0f1117] p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="mb-3 text-lg font-bold tracking-tight text-white">
+              Ready to submit?
+            </h2>
+            <p className="mb-6 text-sm leading-relaxed text-white/70">
+              Are you sure you want to submit? Editing your submission currently
+              requires re-crafting your mix from scratch, so make sure to
+              double-check your entry.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                className="rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white/80 transition-colors hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30"
+              >
+                Keep editing
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSubmit}
+                className="rounded-full bg-blue-500 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_rgba(99,102,241,0.45)] transition-colors hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              >
+                Yes, submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Background Effects */}
       <div className="pointer-events-none absolute inset-x-0 top-[20%] -z-10 flex justify-center opacity-30">
