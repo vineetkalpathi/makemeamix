@@ -332,6 +332,7 @@ export default function YouTubePreview({
         {/* Play/Pause Button */}
         <div className="flex items-center justify-center">
           <button
+            type="button"
             onClick={handlePlayPause}
             disabled={!isPlayerReady}
             className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-400 disabled:bg-white/20 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-blue-300"

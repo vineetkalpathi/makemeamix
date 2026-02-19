@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Craft Your Mix - Make a mix",
-  description: "Create your custom mix with YouTube links and transition notes",
+  title: "craft • makemeamix",
+  description: "Craft your custom mix with YouTube links and transition notes",
 };
 
 export default function CraftLayout({
