@@ -1,10 +1,10 @@
 export interface SongComponent {
   id: string;
   youtubeUrl: string;
+  title: string;
   startTime: number;
   endTime: number;
-  isExpanded: boolean;
-  showWaveform: boolean;
+  duration: number;
   notes: string;
 }
 

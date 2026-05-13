@@ -36,15 +36,14 @@ export function buildMixSubmission(params: {
   const { name, email, reason, songs, transitions } = params;
 
   // Build a lookup map: transition id -> content
-  // Transition after song[i] has id = `transition-${songs[i+1].id}`
+  // Transition into song[i] has id = `transition-${songs[i].id}` (first song has none)
   const transitionMap = new Map<string, string>();
   for (const t of transitions) {
     transitionMap.set(t.id, t.content);
   }
 
   const mixSongs: MixSong[] = songs.map((song, i) => {
-    const nextSong = songs[i + 1];
-    const transitionKey = nextSong ? `transition-${nextSong.id}` : null;
+    const transitionKey = i > 0 ? `transition-${song.id}` : null;
     const transitionNotes =
       transitionKey && transitionMap.has(transitionKey)
         ? transitionMap.get(transitionKey)!

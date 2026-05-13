@@ -1,67 +1,228 @@
 import Link from "next/link";
+import { ArrowIcon } from "./_components/icons";
+import { GrooveDisc, PlaceholderVinyl, Vinyl } from "./_components/Vinyl";
+
+const STEPS = [
+  {
+    idx: "01",
+    title: "Share the vision",
+    body: "Drop the songs, mark the seconds you love. Tell us the room, the energy, the must-hits.",
+    accent: "var(--terra)",
+  },
+  {
+    idx: "02",
+    title: "We craft the cut",
+    body: "We trim, transition, and tune by ear. Custom intros and bridges if you want them.",
+    accent: "var(--mustard)",
+  },
+  {
+    idx: "03",
+    title: "Land it in your inbox",
+    body: "A polished file ready to press play — refined until it's right, no questions asked.",
+    accent: "var(--sage)",
+  },
+];
+
+const USE_CASES = [
+  "Sangeet sets",
+  "Wedding dances",
+  "Group performances",
+  "Sweet sixteens",
+  "Late-night drives",
+  "Cooking sessions",
+  "Workouts",
+  "Whatever you've got",
+];
 
 export default function Home() {
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-[radial-gradient(1200px_600px_at_50%_-150px,rgba(99,102,241,0.18),transparent_60%),radial-gradient(1000px_500px_at_10%_20%,rgba(251,191,36,0.12),transparent_60%),#0b0b0f] text-white">
-      <section className="relative mx-auto flex max-w-6xl flex-col items-center px-6 py-24 sm:px-8 md:py-28">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" />
-          <span className="text-[10px] font-semibold tracking-[0.18em] text-white/80">HAND‑CRAFTED MIXES</span>
-        </div>
+    <main className="overflow-x-hidden">
+      {/* HERO */}
+      <section className="relative">
+        <div className="wrap relative z-[2]" style={{ padding: "72px 28px 96px" }}>
+          <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+            <div className="flex flex-col gap-[22px]">
+              <span className="eyebrow text-accent">Side A · Track 01</span>
+              <h1 style={{ letterSpacing: "-0.02em" }}>
+                A mix made
+                <br />
+                <em className="serif-i text-accent">by hand</em>,
+                <br />
+                shaped for the moment.
+              </h1>
+              <p
+                className="text-ink-soft m-0 max-w-[520px]"
+                style={{ fontSize: 19, lineHeight: 1.55 }}
+              >
+                Send us your songs, sketch the seams, tell us the room you&apos;re playing it in.
+                We build the cut — paced and polished — and drop it in your inbox.
+              </p>
 
-        <h1 className="text-center font-extrabold tracking-tight">
-          <span className="block text-5xl leading-tight sm:text-6xl md:text-7xl">Need a mix?</span>
-        </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-center text-base leading-relaxed text-white/80 sm:text-lg">
-          Custom mixes, built your way.
-        </p>
-        <p className="mx-auto mt-4 text-center text-base leading-relaxed text-white/80 sm:text-lg">
-          From simple blends to fully structured, performance-ready edits — send your songs and your vision, and we&apos;ll handle the rest.
-        </p>
-        <p className="mx-auto mt-4 text-center text-base leading-relaxed text-white/80 sm:text-lg">
-          Delivered fast.
-          Refined until it&apos;s right.
-        </p>
+              <div className="mt-3 flex flex-wrap gap-3">
+                <Link
+                  href="/craft"
+                  className="btn btn-accent"
+                  style={{ padding: "14px 24px", fontSize: 15 }}
+                >
+                  Start your mix <ArrowIcon dir="right" />
+                </Link>
+                <a
+                  href="#how"
+                  className="btn btn-ghost"
+                  style={{ padding: "14px 22px", fontSize: 15 }}
+                >
+                  Hear how it works
+                </a>
+              </div>
 
-        <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
-          <Link
-            href="/craft"
-            className="inline-flex items-center justify-center rounded-full bg-blue-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(99,102,241,0.45)] transition-colors hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
-          >
-            Start Your Mix
-          </Link>
-          {/* <Link
-            href="/examples"
-            className="inline-flex items-center justify-center rounded-full bg-blue-500/50 px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(99,102,241,0.45)] transition-colors hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
-          >
-            Example mixes
-          </Link> */}
-          <a
-            href="#how-it-works"
-            className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20"
-          >
-            How it works
-          </a>
-        </div>
+              <div className="mt-4 flex flex-wrap items-center gap-4 text-ink-mute text-[13px]">
+                <span className="inline-flex items-center gap-2">
+                  <Vinyl size={18} /> 7-day turnaround
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ background: "var(--sage)" }}
+                  />
+                  Unlimited revisions
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ background: "var(--mustard)" }}
+                  />
+                  Made by humans, not algorithms
+                </span>
+              </div>
+            </div>
 
-        <div className="pointer-events-none absolute inset-x-0 top-[45%] -z-10 flex justify-center opacity-50">
-          <div className="h-32 w-[90%] max-w-4xl rounded-full bg-gradient-to-r from-blue-500/30 via-amber-300/30 to-cyan-400/30 blur-2xl" />
+            <div className="relative mx-auto aspect-square w-full max-w-[440px]">
+              <PlaceholderVinyl style={{ width: "100%", height: "100%" }} />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -inset-10 -z-10"
+                style={{ opacity: 0.45 }}
+              >
+                <GrooveDisc
+                  size={520}
+                  style={{ position: "absolute", right: -100, top: -60 }}
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section id="how-it-works" className="relative mx-auto max-w-5xl px-6 pb-24 sm:px-8">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
-            <h3 className="text-base font-bold">1. Share your vision</h3>
-            <p className="mt-1.5 text-sm text-white/75">Occasion, energy, and any must‑haves. Keep it simple.</p>
+      {/* HOW IT WORKS */}
+      <section
+        id="how"
+        className="bg-paper-deep"
+        style={{
+          borderTop: "1px solid var(--hairline)",
+          borderBottom: "1px solid var(--hairline)",
+        }}
+      >
+        <div className="wrap" style={{ padding: "72px 28px" }}>
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <div className="flex flex-col gap-2">
+              <span className="eyebrow">How it works</span>
+              <h2>Three sides, one record.</h2>
+            </div>
+            <p className="text-ink-soft m-0 max-w-[360px]">
+              Three steps from a playlist of ideas to a polished, performance-ready mix.
+            </p>
           </div>
-          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
-            <h3 className="text-base font-bold">2. We craft the mix</h3>
-            <p className="mt-1.5 text-sm text-white/75">Curated with taste. Get funky with a custom intro or transition!</p>
+
+          <div className="grid gap-[22px] [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
+            {STEPS.map((step) => (
+              <article
+                key={step.idx}
+                className="card relative"
+                style={{ padding: "32px 24px 24px", background: "var(--surface)" }}
+              >
+                <div
+                  className="serif tabular-nums italic"
+                  style={{
+                    fontSize: 72,
+                    lineHeight: 1,
+                    color: step.accent,
+                    marginBottom: 14,
+                  }}
+                >
+                  {step.idx}
+                </div>
+                <h3 className="mb-2.5">{step.title}</h3>
+                <p
+                  className="text-ink-soft m-0"
+                  style={{ fontSize: 15, lineHeight: 1.55 }}
+                >
+                  {step.body}
+                </p>
+              </article>
+            ))}
           </div>
-          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
-            <h3 className="text-base font-bold">3. Delivered straight to your inbox</h3>
-            <p className="mt-1.5 text-sm text-white/75">A polished playlist where you want it —ready to press play.</p>
+        </div>
+      </section>
+
+      {/* USE CASES */}
+      <section>
+        <div className="wrap" style={{ padding: "72px 28px" }}>
+          <div className="mb-9 flex flex-col items-center gap-2 text-center">
+            <span className="eyebrow">What it&apos;s for</span>
+            <h2>
+              For the moments worth&nbsp;
+              <em className="serif-i text-accent">scoring</em>.
+            </h2>
+          </div>
+          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
+            {USE_CASES.map((t, i) => (
+              <div
+                key={t}
+                className="flex items-center gap-3 border"
+                style={{
+                  padding: "20px 18px",
+                  background: i % 2 === 0 ? "var(--surface)" : "var(--paper-deep)",
+                  borderColor: "var(--hairline)",
+                  borderRadius: "var(--r-md)",
+                }}
+              >
+                <span
+                  className="text-ink-mute font-mono tabular-nums"
+                  style={{ fontSize: 10.5, letterSpacing: "0.16em" }}
+                >
+                  0{i + 1}
+                </span>
+                <span style={{ fontFamily: "var(--font-display)", fontSize: 18 }}>{t}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section style={{ background: "var(--ink)", color: "var(--paper)" }}>
+        <div className="wrap text-center" style={{ padding: "80px 28px" }}>
+          <div className="flex flex-col items-center gap-3">
+            <span className="eyebrow text-accent">The needle drops</span>
+            <h2 className="mx-auto max-w-[720px]" style={{ color: "var(--paper)" }}>
+              Bring the songs.
+              <br />
+              We&apos;ll handle the <em className="serif-i text-accent">seams</em>.
+            </h2>
+            <Link
+              href="/craft"
+              className="btn"
+              style={{
+                marginTop: 18,
+                background: "var(--accent)",
+                color: "var(--paper)",
+                border: "none",
+                padding: "16px 28px",
+                fontSize: 15,
+              }}
+            >
+              Start your mix <ArrowIcon dir="right" />
+            </Link>
           </div>
         </div>
       </section>
