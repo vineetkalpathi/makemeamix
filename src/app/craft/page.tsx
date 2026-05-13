@@ -1,28 +1,47 @@
 "use client";
 
-import { useState, useActionState, useEffect, useRef, useCallback } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { submitMix } from "./actions";
-import type { SongComponent, TransitionNote, SubmitMixState } from "./types";
-import UserInfoSection from "./components/UserInfoSection";
-import SongCard from "./components/SongCard";
-import TransitionNoteCard from "./components/TransitionNoteCard";
+import type { SongComponent, SubmitMixState, TransitionNote } from "./types";
+import { OCCASIONS, YourDetails, type DetailsState } from "./components/YourDetails";
+import { Timeline } from "./components/Timeline";
+import { TrackDetail } from "./components/TrackDetail";
+import { CraftHeader } from "./components/CraftHeader";
+import { ArrowIcon } from "@/app/_components/icons";
 
 const initialState: SubmitMixState = { success: false, message: "" };
 
+function makeTrack(): SongComponent {
+  return {
+    id: crypto.randomUUID(),
+    youtubeUrl: "",
+    title: "",
+    startTime: 0,
+    endTime: 30,
+    duration: 0,
+    notes: "",
+  };
+}
+
 export default function CraftPage() {
   const [state, formAction, isPending] = useActionState(submitMix, initialState);
-  const bannerRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const bannerRef = useRef<HTMLDivElement>(null);
+
+  const [details, setDetails] = useState<DetailsState>({
+    name: "",
+    email: "",
+    occasion: "",
+    customOccasion: "",
+  });
+  const [detailsOpen, setDetailsOpen] = useState(true);
+
+  const initialTrack = useMemo(() => makeTrack(), []);
+  const [tracks, setTracks] = useState<SongComponent[]>([initialTrack]);
+  const [transitions, setTransitions] = useState<Record<string, string>>({});
+  const [focusedId, setFocusedId] = useState<string>(initialTrack.id);
+
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-
-  const handleConfirmSubmit = useCallback(() => {
-    setShowConfirmModal(false);
-    formRef.current?.requestSubmit();
-  }, []);
-
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [reason, setReason] = useState("");
 
   useEffect(() => {
     if (state.message) {
@@ -30,243 +49,250 @@ export default function CraftPage() {
     }
   }, [state.message]);
 
-  const [songComponents, setSongComponents] = useState<SongComponent[]>([
-    {
-      id: crypto.randomUUID(),
-      youtubeUrl: "",
-      startTime: 0,
-      endTime: 30,
-      isExpanded: true,
-      showWaveform: false,
-      notes: "",
-    },
-  ]);
+  const focused = tracks.find((t) => t.id === focusedId) ?? tracks[0];
+  const filledCount = tracks.filter((t) => t.youtubeUrl && t.endTime > t.startTime).length;
+  const totalDuration = tracks.reduce(
+    (acc, t) => acc + Math.max(0, t.endTime - t.startTime),
+    0
+  );
 
-  const [transitionNotes, setTransitionNotes] = useState<TransitionNote[]>([]);
+  const updateTrack = (id: string, patch: Partial<SongComponent>) =>
+    setTracks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
 
-  const handleSongChange = (id: string, field: string, value: string | number | boolean) => {
-    setSongComponents((prev) =>
-      prev.map((song) =>
-        song.id === id ? { ...song, [field]: value } : song
-      )
-    );
+  const addTrack = () => {
+    const t = makeTrack();
+    setTracks((prev) => [...prev, t]);
+    setTransitions((prev) => ({ ...prev, [t.id]: "" }));
+    setFocusedId(t.id);
   };
 
-  const addSongComponent = () => {
-    const newId = crypto.randomUUID();
-    setSongComponents((prev) =>
-      prev
-        .map((song) => ({ ...song, isExpanded: false }))
-        .concat({
-          id: newId,
-          youtubeUrl: "",
-          startTime: 0,
-          endTime: 30,
-          isExpanded: true,
-          showWaveform: false,
-          notes: "",
-        })
-    );
-
-    if (songComponents.length > 0) {
-      setTransitionNotes((prev) =>
-        prev.concat({ id: `transition-${newId}`, content: "" })
-      );
-    }
+  const removeTrack = (id: string) => {
+    setTracks((prev) => {
+      const idx = prev.findIndex((t) => t.id === id);
+      const next = prev.filter((t) => t.id !== id);
+      if (id === focusedId && next.length > 0) {
+        const fallback = prev[idx - 1] || prev[idx + 1];
+        if (fallback) setFocusedId(fallback.id);
+      }
+      return next;
+    });
+    setTransitions((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
   };
 
-  const removeSongComponent = (id: string) => {
-    setSongComponents((prev) => prev.filter((song) => song.id !== id));
-    setTransitionNotes((prev) =>
-      prev.filter((note) => note.id !== `transition-${id}`)
-    );
+  const moveTrack = (id: string, dir: -1 | 1) => {
+    setTracks((prev) => {
+      const idx = prev.findIndex((t) => t.id === id);
+      if (idx < 0) return prev;
+      const ni = idx + dir;
+      if (ni < 0 || ni >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[ni]] = [next[ni], next[idx]];
+      return next;
+    });
   };
 
-  const handleTransitionNoteChange = (id: string, content: string) => {
-    setTransitionNotes((prev) =>
-      prev.map((note) =>
-        note.id === id ? { ...note, content } : note
-      )
-    );
+  // Serialize for the server action.
+  const reason = (() => {
+    if (details.occasion === "other") return details.customOccasion;
+    const label = OCCASIONS.find((o) => o.id === details.occasion)?.label || "";
+    return details.customOccasion ? `${label} — ${details.customOccasion}` : label;
+  })();
+
+  const transitionsForServer: TransitionNote[] = tracks
+    .slice(1)
+    .map((t) => ({ id: `transition-${t.id}`, content: transitions[t.id] || "" }));
+
+  const submitDisabled = isPending || filledCount === 0;
+
+  const onSubmitClick = () => {
+    if (submitDisabled) return;
+    setShowConfirmModal(true);
+  };
+
+  const confirmSubmit = () => {
+    setShowConfirmModal(false);
+    formRef.current?.requestSubmit();
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
-      <section className="relative mx-auto flex max-w-4xl flex-col px-6 py-12 sm:px-8">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" />
-            <span className="text-[10px] font-semibold tracking-[0.18em] text-white/80">
-              CRAFT YOUR MIX
-            </span>
-          </div>
+    <main>
+      <div className="wrap" style={{ paddingTop: 28, paddingBottom: 80 }}>
+        <CraftHeader filled={filledCount} total={tracks.length} totalDuration={totalDuration} />
 
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-            Create Your Vision
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-base leading-relaxed text-white/80 sm:text-lg">
-            Share your details and build your perfect mix with YouTube links and
-            transition notes.
-          </p>
-        </div>
-
-        {/* Status Banner */}
-        {state.message && (
+        {state.message ? (
           <div
             ref={bannerRef}
-            className="mb-6 rounded-lg border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm text-red-300"
+            className="mt-6 font-mono"
+            style={{
+              padding: "12px 16px",
+              background: "color-mix(in oklch, var(--terra-2) 12%, var(--surface))",
+              border: "1px solid color-mix(in oklch, var(--terra-2) 30%, transparent)",
+              borderRadius: "var(--r-md)",
+              color: "color-mix(in oklch, var(--terra-2) 70%, var(--ink))",
+              fontSize: 12,
+              letterSpacing: "0.04em",
+            }}
           >
             {state.message}
           </div>
-        )}
+        ) : null}
 
-        {/* Form */}
-        <form ref={formRef} action={formAction} className="space-y-8">
-          <UserInfoSection
-            errors={state.errors}
-            name={name}
-            email={email}
-            reason={reason}
-            onNameChange={setName}
-            onEmailChange={setEmail}
-            onReasonChange={setReason}
+        <form ref={formRef} action={formAction} className="mt-7 flex flex-col gap-7">
+          <input type="hidden" name="name" value={details.name} />
+          <input type="hidden" name="email" value={details.email} />
+          <input type="hidden" name="reason" value={reason} />
+          <input type="hidden" name="songs" value={JSON.stringify(tracks)} />
+          <input
+            type="hidden"
+            name="transitions"
+            value={JSON.stringify(transitionsForServer)}
           />
 
-          {/* Hidden inputs for dynamic data */}
-          <input type="hidden" name="songs" value={JSON.stringify(songComponents)} />
-          <input type="hidden" name="transitions" value={JSON.stringify(transitionNotes)} />
+          <YourDetails
+            open={detailsOpen}
+            onToggle={() => setDetailsOpen((o) => !o)}
+            details={details}
+            setDetails={setDetails}
+            errors={state.errors}
+          />
 
-          {/* Song Components */}
-          <div className="space-y-6">
-            {songComponents.map((song, index) => (
-              <div key={song.id} className="space-y-4">
-                <SongCard
-                  song={song}
-                  index={index}
-                  canDelete={songComponents.length > 1}
-                  onSongChange={handleSongChange}
-                  onRemove={removeSongComponent}
-                />
+          <Timeline
+            tracks={tracks}
+            transitions={transitions}
+            focusedId={focusedId}
+            onFocus={setFocusedId}
+            onAdd={addTrack}
+            onRemove={removeTrack}
+            onMove={moveTrack}
+            onTransitionChange={(id, content) =>
+              setTransitions((prev) => ({ ...prev, [id]: content }))
+            }
+          />
 
-                {index < songComponents.length - 1 && (
-                  <TransitionNoteCard
-                    fromSongIndex={index + 1}
-                    toSongIndex={index + 2}
-                    content={
-                      transitionNotes.find(
-                        (note) =>
-                          note.id ===
-                          `transition-${songComponents[index + 1]?.id}`
-                      )?.content || ""
-                    }
-                    onChange={(content) =>
-                      handleTransitionNoteChange(
-                        `transition-${songComponents[index + 1]?.id}`,
-                        content
-                      )
-                    }
-                  />
-                )}
-              </div>
-            ))}
+          {focused ? (
+            <TrackDetail
+              key={focused.id}
+              track={focused}
+              tracks={tracks}
+              transitions={transitions}
+              canRemove={tracks.length > 1}
+              onChange={(patch) => updateTrack(focused.id, patch)}
+              onRemove={() => removeTrack(focused.id)}
+              onTransitionChange={(content) =>
+                setTransitions((prev) => ({ ...prev, [focused.id]: content }))
+              }
+            />
+          ) : null}
 
-            {/* Add Song Button */}
-            <div className="flex items-center justify-end">
-              <button
-                type="button"
-                onClick={addSongComponent}
-                className="inline-flex items-center gap-2 rounded-full bg-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_4px_12px_rgba(99,102,241,0.45)] transition-colors hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                Add a song
-              </button>
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <div className="flex justify-center pt-8">
-            <button
-              type="button"
-              disabled={isPending}
-              onClick={() => setShowConfirmModal(true)}
-              className="inline-flex items-center gap-2 rounded-full bg-blue-500 px-8 py-4 text-lg font-semibold text-white shadow-[0_8px_24px_rgba(99,102,241,0.45)] transition-colors hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPending ? "Submitting..." : "Submit Your Mix"}
-              {!isPending && (
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
-                </svg>
-              )}
-            </button>
-          </div>
-        </form>
-      </section>
-
-      {/* Confirmation Modal */}
-      {showConfirmModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
-          onClick={() => setShowConfirmModal(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0f1117] p-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="mb-3 text-lg font-bold tracking-tight text-white">
-              Ready to submit?
-            </h2>
-            <p className="mb-6 text-sm leading-relaxed text-white/70">
-              Are you sure you want to submit? Editing your submission currently
-              requires re-crafting your mix from scratch, so make sure to
-              double-check your entry.
+          {state.errors?.songs ? (
+            <p className="font-mono text-center" style={{ color: "var(--terra-2)", fontSize: 12 }}>
+              {state.errors.songs}
             </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                type="button"
-                onClick={() => setShowConfirmModal(false)}
-                className="rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white/80 transition-colors hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30"
-              >
-                Keep editing
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmSubmit}
-                className="rounded-full bg-blue-500 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_12px_rgba(99,102,241,0.45)] transition-colors hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
-              >
-                Yes, submit
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          ) : null}
 
-      {/* Background Effects */}
-      <div className="pointer-events-none absolute inset-x-0 top-[20%] -z-10 flex justify-center opacity-30">
-        <div className="h-32 w-[90%] max-w-4xl rounded-full bg-gradient-to-r from-blue-500/20 via-amber-300/20 to-cyan-400/20 blur-2xl" />
+          <SubmitBar
+            disabled={submitDisabled}
+            isPending={isPending}
+            onSubmit={onSubmitClick}
+          />
+        </form>
       </div>
+
+      {showConfirmModal ? (
+        <ConfirmModal
+          onCancel={() => setShowConfirmModal(false)}
+          onConfirm={confirmSubmit}
+        />
+      ) : null}
     </main>
+  );
+}
+
+
+function SubmitBar({
+  disabled,
+  isPending,
+  onSubmit,
+}: {
+  disabled: boolean;
+  isPending: boolean;
+  onSubmit: () => void;
+}) {
+  return (
+    <div
+      className="flex flex-wrap items-center justify-between gap-3.5"
+      style={{
+        padding: "20px 24px",
+        background: "var(--surface)",
+        border: "1px solid var(--hairline)",
+        borderRadius: "var(--r-lg)",
+      }}
+    >
+      <div className="flex flex-col gap-1">
+        <span className="serif-i" style={{ fontSize: 22 }}>
+          Ready when you are.
+        </span>
+        <span className="caption">
+          Editing your submission currently requires re-crafting from scratch, so double-check
+          your entry.
+        </span>
+      </div>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={disabled}
+          aria-disabled={disabled}
+          className="btn btn-accent"
+          style={{ padding: "14px 26px" }}
+        >
+          {isPending ? "Sending…" : "Send the mix request"}
+          {!isPending ? <ArrowIcon dir="right" /> : null}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmModal({
+  onCancel,
+  onConfirm,
+}: {
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      onClick={onCancel}
+      className="fixed inset-0 z-[200] flex items-center justify-center px-4"
+      style={{ background: "color-mix(in oklch, var(--ink) 60%, transparent)" }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="card w-full max-w-md"
+        style={{ background: "var(--paper)" }}
+      >
+        <h3 className="mb-2">Ready to submit?</h3>
+        <p
+          className="text-ink-soft"
+          style={{ fontSize: 14, lineHeight: 1.55, margin: "0 0 18px" }}
+        >
+          Editing your submission currently requires re-crafting your mix from scratch, so make
+          sure to double-check your entry.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel}>
+            Keep editing
+          </button>
+          <button type="button" className="btn btn-accent btn-sm" onClick={onConfirm}>
+            Yes, submit
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
