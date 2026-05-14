@@ -4,6 +4,7 @@ import { Vinyl } from "@/app/_components/Vinyl";
 import { ArrowIcon } from "@/app/_components/icons";
 import type { SongComponent, TransitionNote } from "../types";
 import { durationLabel, formatTime } from "../utils/time";
+import { trimLink } from "../utils/url";
 
 interface MixSubmissionCookie {
   submissionId: string;
@@ -276,16 +277,3 @@ function ReceiptCell({
   );
 }
 
-function trimLink(url: string): string {
-  try {
-    const u = new URL(url);
-    if (u.hostname.includes("youtu.be")) return `youtu.be${u.pathname}`;
-    if (u.hostname.includes("youtube.com")) {
-      const v = u.searchParams.get("v");
-      return v ? `youtu.be/${v}` : url;
-    }
-    return u.hostname + u.pathname;
-  } catch {
-    return url;
-  }
-}
