@@ -224,7 +224,7 @@ function SubmitBar({
 }) {
   return (
     <div
-      className="flex flex-wrap items-center justify-between gap-3.5"
+      className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3.5"
       style={{
         padding: "20px 24px",
         background: "var(--surface)",
@@ -247,7 +247,7 @@ function SubmitBar({
           onClick={onSubmit}
           disabled={disabled}
           aria-disabled={disabled}
-          className="btn btn-accent"
+          className="btn btn-accent w-full sm:w-auto"
           style={{ padding: "14px 26px" }}
         >
           {isPending ? "Sending…" : "Send the mix request"}

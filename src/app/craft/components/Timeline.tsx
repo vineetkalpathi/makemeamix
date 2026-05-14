@@ -29,8 +29,8 @@ export function Timeline({
 }: TimelineProps) {
   return (
     <section>
-      <div className="mb-3.5 flex items-end justify-between">
-        <div className="flex items-baseline gap-3">
+      <div className="mb-3.5 flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <span
             className="serif tabular-nums italic text-ink-mute"
             style={{ fontSize: 24 }}
@@ -38,7 +38,9 @@ export function Timeline({
             02.
           </span>
           <h3>Tracks</h3>
-          <span className="caption">Click a card to edit · use arrows to reorder</span>
+          <span className="caption hidden sm:inline">
+            Tap a card to edit · arrows to reorder
+          </span>
         </div>
         <button type="button" className="btn btn-ghost btn-sm" onClick={onAdd}>
           <span style={{ fontSize: 16, lineHeight: 0.6 }}>+</span> Add a track
@@ -304,7 +306,7 @@ function TransitionSeam({
             top: "100%",
             left: "50%",
             transform: "translate(-50%, 12px)",
-            width: 320,
+            width: "min(320px, calc(100vw - 32px))",
             padding: 14,
             background: "var(--paper)",
             border: "1px solid var(--hairline-strong)",

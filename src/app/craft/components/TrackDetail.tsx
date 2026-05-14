@@ -97,8 +97,8 @@ export function TrackDetail({
       <div className="grid items-stretch gap-0 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         {/* LEFT: source + scrubber */}
         <div
-          className="flex flex-col gap-4"
-          style={{ padding: 22, borderRight: "1px solid var(--hairline)" }}
+          className="flex flex-col gap-4 border-b md:border-b-0 md:border-r"
+          style={{ padding: 22, borderColor: "var(--hairline)" }}
         >
           <SourceField track={track} onChange={onChange} />
           <YouTubePreview

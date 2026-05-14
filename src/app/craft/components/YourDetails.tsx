@@ -40,8 +40,8 @@ export function YourDetails({ open, onToggle, details, setDetails, errors }: You
 
   return (
     <section className="card" style={{ padding: open ? "var(--pad-card)" : "16px 22px" }}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           <span
             className="serif tabular-nums italic text-ink-mute"
             style={{ fontSize: 24 }}
@@ -50,16 +50,28 @@ export function YourDetails({ open, onToggle, details, setDetails, errors }: You
           </span>
           <h3 style={{ margin: 0 }}>Your details</h3>
           {summary && !open ? (
-            <span className="caption" style={{ marginLeft: 8 }}>
+            <span
+              className="caption hidden truncate md:inline"
+              style={{ marginLeft: 8 }}
+            >
               {summary}
             </span>
           ) : null}
         </div>
-        <button type="button" className="btn btn-ghost btn-xs" onClick={onToggle}>
+        <button type="button" className="btn btn-ghost btn-xs shrink-0" onClick={onToggle}>
           {open ? "Collapse" : "Edit"}
           <ArrowIcon dir={open ? "up" : "down"} size={12} />
         </button>
       </div>
+
+      {summary && !open ? (
+        <div
+          className="caption mt-2 break-words md:hidden"
+          style={{ paddingLeft: 36 }}
+        >
+          {summary}
+        </div>
+      ) : null}
 
       {open ? (
         <div className="mt-4 flex flex-col gap-3.5">

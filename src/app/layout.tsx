@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Nav from "./_components/Nav";
@@ -23,9 +23,31 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f3e8d1" },
+    { media: "(prefers-color-scheme: dark)", color: "#1a130d" },
+  ],
+};
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://makemeamix.com"),
   title: "makemeamix",
   description: "A mix made by hand, shaped for the moment.",
+  openGraph: {
+    title: "makemeamix",
+    description: "A mix made by hand, shaped for the moment.",
+    url: "https://makemeamix.com",
+    siteName: "makemeamix",
+    type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "makemeamix",
+    description: "A mix made by hand, shaped for the moment.",
+    images: ["/og-image.png"],
+  },
 };
 
 // Inline so the theme is applied before paint and avoids a flash.
@@ -51,6 +73,7 @@ export default function RootLayout({
       lang="en"
       data-theme="light"
       data-density="cozy"
+      suppressHydrationWarning
       className={`${instrumentSerif.variable} ${bricolage.variable} ${jetbrainsMono.variable}`}
     >
       <head>

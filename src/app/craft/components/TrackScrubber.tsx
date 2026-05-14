@@ -39,26 +39,88 @@ export function TrackScrubber({
     [duration]
   );
 
+  const sP = pct(startTime);
+  const eP = pct(endTime);
+  const cP = pct(currentTime);
+
+  // Larger hit target on touch — handles are only 18px wide visually.
+  const hitThreshold = 3;
+
+  const startDragAt = (clientX: number, pointerId: number, target: Element) => {
+    const r = trackRef.current?.getBoundingClientRect();
+    if (!r) return;
+    const x = ((clientX - r.left) / r.width) * 100;
+    let mode: Exclude<DragMode, null>;
+    if (Math.abs(x - sP) < hitThreshold) mode = "start";
+    else if (Math.abs(x - eP) < hitThreshold) mode = "end";
+    else {
+      const v = valueAt(clientX);
+      onSeek(Math.max(startTime, Math.min(endTime, v)));
+      mode = "seek";
+    }
+    setDrag(mode);
+    try {
+      (target as Element & { setPointerCapture?: (id: number) => void }).setPointerCapture?.(pointerId);
+    } catch {
+      // not supported — fall back to global listeners below
+    }
+  };
+
+  const startDragHandle = (
+    mode: "start" | "end",
+    pointerId: number,
+    target: Element
+  ) => {
+    setDrag(mode);
+    try {
+      (target as Element & { setPointerCapture?: (id: number) => void }).setPointerCapture?.(pointerId);
+    } catch {
+      // ignore
+    }
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!drag) return;
+    const v = valueAt(e.clientX);
+    if (drag === "start") onStartChange(Math.max(0, Math.min(v, endTime - 1)));
+    else if (drag === "end") onEndChange(Math.min(duration, Math.max(v, startTime + 1)));
+    else if (drag === "seek") onSeek(Math.max(startTime, Math.min(endTime, v)));
+  };
+
+  const endDrag = (e: React.PointerEvent) => {
+    setDrag(null);
+    const t = e.currentTarget as Element & {
+      hasPointerCapture?: (id: number) => boolean;
+      releasePointerCapture?: (id: number) => void;
+    };
+    try {
+      if (t.hasPointerCapture?.(e.pointerId)) t.releasePointerCapture?.(e.pointerId);
+    } catch {
+      // ignore
+    }
+  };
+
+  // Fallback for browsers without pointer capture: keep dragging if the
+  // pointer leaves the track element entirely.
   useEffect(() => {
     if (!drag) return;
-    const move = (e: MouseEvent) => {
+    const move = (e: PointerEvent) => {
+      if (!drag) return;
       const v = valueAt(e.clientX);
       if (drag === "start") onStartChange(Math.max(0, Math.min(v, endTime - 1)));
       else if (drag === "end") onEndChange(Math.min(duration, Math.max(v, startTime + 1)));
       else if (drag === "seek") onSeek(Math.max(startTime, Math.min(endTime, v)));
     };
     const up = () => setDrag(null);
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
     return () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseup", up);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
     };
   }, [drag, valueAt, onStartChange, onEndChange, onSeek, startTime, endTime, duration]);
-
-  const sP = pct(startTime);
-  const eP = pct(endTime);
-  const cP = pct(currentTime);
 
   const ticks: number[] = [];
   const tickEvery = duration > 300 ? 60 : 30;
@@ -68,27 +130,16 @@ export function TrackScrubber({
     <div className="flex flex-col gap-2">
       <div
         ref={trackRef}
-        onMouseDown={(e) => {
-          const r = trackRef.current?.getBoundingClientRect();
-          if (!r) return;
-          const x = ((e.clientX - r.left) / r.width) * 100;
-          if (Math.abs(x - sP) < 1.5) {
-            setDrag("start");
-            return;
-          }
-          if (Math.abs(x - eP) < 1.5) {
-            setDrag("end");
-            return;
-          }
-          const v = valueAt(e.clientX);
-          onSeek(Math.max(startTime, Math.min(endTime, v)));
-          setDrag("seek");
-        }}
+        onPointerDown={(e) => startDragAt(e.clientX, e.pointerId, e.currentTarget)}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
         className="relative select-none"
         style={{
           height: 44,
           cursor: drag ? "grabbing" : "pointer",
           padding: "12px 0",
+          touchAction: "none",
         }}
       >
         {/* base track */}
@@ -141,43 +192,27 @@ export function TrackScrubber({
           />
         ) : null}
         {/* start handle */}
-        <div
-          onMouseDown={(e) => {
+        <Handle
+          left={sP}
+          onPointerDown={(e) => {
             e.stopPropagation();
-            setDrag("start");
+            startDragHandle("start", e.pointerId, e.currentTarget);
           }}
-          className="absolute top-1/2"
-          style={{
-            transform: "translate(-50%, -50%)",
-            left: `${sP}%`,
-            width: 18,
-            height: 18,
-            background: "var(--paper)",
-            border: "2px solid var(--ink)",
-            borderRadius: "50%",
-            cursor: "grab",
-            zIndex: 2,
-          }}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
           aria-label="Start"
         />
         {/* end handle */}
-        <div
-          onMouseDown={(e) => {
+        <Handle
+          left={eP}
+          onPointerDown={(e) => {
             e.stopPropagation();
-            setDrag("end");
+            startDragHandle("end", e.pointerId, e.currentTarget);
           }}
-          className="absolute top-1/2"
-          style={{
-            transform: "translate(-50%, -50%)",
-            left: `${eP}%`,
-            width: 18,
-            height: 18,
-            background: "var(--paper)",
-            border: "2px solid var(--ink)",
-            borderRadius: "50%",
-            cursor: "grab",
-            zIndex: 2,
-          }}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
           aria-label="End"
         />
       </div>
@@ -287,3 +322,41 @@ const stepBtnStyle: React.CSSProperties = {
   height: 21,
   lineHeight: 1,
 };
+
+interface HandleProps extends React.HTMLAttributes<HTMLDivElement> {
+  left: number;
+}
+
+// Visible dot is 18px; transparent hit target is 32px (better for touch).
+function Handle({ left, ...rest }: HandleProps) {
+  return (
+    <div
+      {...rest}
+      className="absolute top-1/2"
+      style={{
+        transform: "translate(-50%, -50%)",
+        left: `${left}%`,
+        width: 32,
+        height: 32,
+        cursor: "grab",
+        zIndex: 2,
+        touchAction: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        aria-hidden="true"
+        style={{
+          width: 18,
+          height: 18,
+          background: "var(--paper)",
+          border: "2px solid var(--ink)",
+          borderRadius: "50%",
+          pointerEvents: "none",
+        }}
+      />
+    </div>
+  );
+}

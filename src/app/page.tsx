@@ -38,7 +38,23 @@ export default function Home() {
   return (
     <main className="overflow-x-hidden">
       {/* HERO */}
-      <section className="relative">
+      <section className="relative overflow-hidden">
+        {/* Mobile/tablet decorative vinyl, clipped at the right edge */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute lg:hidden"
+          style={{
+            top: 56,
+            right: "clamp(-140px, -22vw, -90px)",
+            width: "clamp(240px, 62vw, 360px)",
+            height: "clamp(240px, 62vw, 360px)",
+            opacity: 0.75,
+            zIndex: 1,
+          }}
+        >
+          <PlaceholderVinyl style={{ width: "100%", height: "100%" }} />
+        </div>
+
         <div className="wrap relative z-[2]" style={{ padding: "72px 28px 96px" }}>
           <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
             <div className="flex flex-col gap-[22px]">
@@ -96,7 +112,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="relative mx-auto aspect-square w-full max-w-[440px]">
+            <div className="relative mx-auto hidden aspect-square w-full max-w-[440px] lg:block">
               <PlaceholderVinyl style={{ width: "100%", height: "100%" }} />
               <div
                 aria-hidden="true"

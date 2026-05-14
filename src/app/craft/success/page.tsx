@@ -264,11 +264,11 @@ function ReceiptCell({
 }) {
   return (
     <div
-      className="flex flex-col gap-1"
-      style={{
-        padding: 18,
-        borderRight: bordered ? "1px solid var(--hairline)" : "none",
-      }}
+      className={
+        "flex flex-col gap-1" +
+        (bordered ? " border-b sm:border-b-0 sm:border-r" : "")
+      }
+      style={{ padding: 18, borderColor: "var(--hairline)" }}
     >
       <span className="caption">{label}</span>
       <span className="break-all" style={{ fontSize: 15 }}>{value || "—"}</span>
