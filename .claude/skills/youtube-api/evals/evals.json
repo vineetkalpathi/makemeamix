@@ -1,0 +1,20 @@
+{
+  "skill_name": "youtube-api",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "How do I add a mute button to the YouTubePreview component? What API method should I call and how do I expose it through the YTPlayer interface?",
+      "expected_output": "Shows how to add mute()/unMute()/isMuted() to the YTPlayer interface in YouTubePreview.tsx and call them via internalRef.current"
+    },
+    {
+      "id": 2,
+      "prompt": "The player sometimes starts playing automatically when I load a new video even though I don't call playVideo(). What could be causing this and how do I prevent it?",
+      "expected_output": "Explains the autoplay playerVar, browser autoplay blocking, and possibly the onAutoplayBlocked event. Suggests checking playerVars and possibly the onStateChange handler."
+    },
+    {
+      "id": 3,
+      "prompt": "What does the state code 3 mean in onStateChange? When does it fire?",
+      "expected_output": "Explains that 3 = BUFFERING (YT.PlayerState.BUFFERING), fires when player is waiting for video data to download"
+    }
+  ]
+}
