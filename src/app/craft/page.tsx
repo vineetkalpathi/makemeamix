@@ -14,7 +14,7 @@ const initialState: SubmitMixState = { success: false, message: "" };
 function makeTrack(): SongComponent {
   return {
     id: crypto.randomUUID(),
-    youtubeUrl: "",
+    url: "",
     title: "",
     startTime: 0,
     endTime: 30,
@@ -50,7 +50,7 @@ export default function CraftPage() {
   }, [state.message]);
 
   const focused = tracks.find((t) => t.id === focusedId) ?? tracks[0];
-  const filledCount = tracks.filter((t) => t.youtubeUrl && t.endTime > t.startTime).length;
+  const filledCount = tracks.filter((t) => t.url && t.endTime > t.startTime).length;
   const totalDuration = tracks.reduce(
     (acc, t) => acc + Math.max(0, t.endTime - t.startTime),
     0

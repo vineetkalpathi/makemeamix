@@ -86,7 +86,7 @@ export class GoogleSheetsProvider implements StorageProvider {
       data.email,
       data.purpose,
       i + 1,
-      song.youtubeUrl,
+      song.url,
       formatSeconds(song.startTime),
       formatSeconds(song.endTime),
       song.songNotes,
@@ -184,7 +184,8 @@ function rowsToStoredSubmission(rows: string[][]): StoredSubmission {
   const songs: MixSong[] = rows
     .sort((a, b) => Number(a[COL.SONG_NUMBER]) - Number(b[COL.SONG_NUMBER]))
     .map((row) => ({
-      youtubeUrl: row[COL.YOUTUBE_URL] ?? "",
+      url: row[COL.YOUTUBE_URL] ?? "",
+      title: "",
       startTime: parseSeconds(row[COL.START_TIME] ?? "0:00"),
       endTime: parseSeconds(row[COL.END_TIME] ?? "0:00"),
       songNotes: row[COL.SONG_NOTES] ?? "",

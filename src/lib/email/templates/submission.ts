@@ -31,7 +31,7 @@ function metaCell(label: string, value: string, borderRight = false): string {
 function trackRows(submission: MixSubmission): string {
   return submission.songs.map((song, i) => {
     const dur = Math.max(0, song.endTime - song.startTime);
-    const trimmed = trimLink(song.youtubeUrl);
+    const trimmed = trimLink(song.url);
 
     const transitionRow = song.transitionNotes ? `
       <tr>
@@ -68,10 +68,10 @@ function trackRows(submission: MixSubmission): string {
               </td>
               <td style="padding:14px 16px 14px 8px;">
                 <div style="font-family:Georgia,'Times New Roman',serif;font-size:17px;color:${C.ink};margin-bottom:4px;">
-                  <span style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:${C.accent};letter-spacing:0.16em;margin-right:10px;">TRACK ${String(i + 1).padStart(2, "0")}</span>${trimmed || "Untitled"}
+                  <span style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:${C.accent};letter-spacing:0.16em;margin-right:10px;">TRACK ${String(i + 1).padStart(2, "0")}</span>${song.title || trimmed || "Untitled"}
                 </div>
                 <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:${C.inkMute};${song.songNotes ? "margin-bottom:4px;" : ""}">
-                  <a href="${song.youtubeUrl}" style="color:${C.inkMute};text-decoration:none;">${trimmed}</a>
+                  <a href="${song.url}" style="color:${C.inkMute};text-decoration:none;">${trimmed}</a>
                   · ${formatTime(song.startTime)} — ${formatTime(song.endTime)} · ${formatTime(dur)}
                 </div>
                 ${song.songNotes ? `<div style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:13px;color:${C.inkSoft};">"${song.songNotes}"</div>` : ""}
@@ -89,7 +89,7 @@ export function buildHtmlEmail(submission: MixSubmission, submissionId: string):
     (acc, s) => acc + Math.max(0, s.endTime - s.startTime),
     0
   );
-  const filled = submission.songs.filter((s) => s.youtubeUrl).length;
+  const filled = submission.songs.filter((s) => s.url).length;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -172,8 +172,8 @@ export function buildTextEmail(submission: MixSubmission, submissionId: string):
   const songLines = submission.songs
     .map((song, i) => {
       const lines = [
-        `Song ${i + 1}`,
-        `  URL: ${song.youtubeUrl}`,
+        `Song ${i + 1}${song.title ? ` · ${song.title}` : ""}`,
+        `  URL: ${song.url}`,
         `  Clip: ${formatTime(song.startTime)} – ${formatTime(song.endTime)}`,
       ];
       if (song.songNotes) lines.push(`  Notes: ${song.songNotes}`);
@@ -192,5 +192,151 @@ export function buildTextEmail(submission: MixSubmission, submissionId: string):
     "Songs",
     "─────",
     songLines,
+  ].join("\n");
+}
+
+// ─── Confirmation email (sent to the submitter) ───────────────────────────────
+
+export function buildConfirmationHtmlEmail(submission: MixSubmission, submissionId: string): string {
+  const label = submissionLabel(submissionId);
+  const totalDuration = submission.songs.reduce(
+    (acc, s) => acc + Math.max(0, s.endTime - s.startTime),
+    0
+  );
+  const filled = submission.songs.filter((s) => s.url).length;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Your mix request</title>
+</head>
+<body style="margin:0;padding:0;background:${C.paperDeep};">
+  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:${C.paperDeep};padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table cellpadding="0" cellspacing="0" border="0" width="600"
+               style="max-width:600px;background:${C.surface};border:1px solid ${C.hairline};border-radius:16px;overflow:hidden;">
+
+          <!-- header -->
+          <tr>
+            <td style="background:${C.paperDeep};padding:20px 24px;border-bottom:1px solid ${C.hairline};">
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td>
+                    <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:0.06em;color:${C.inkMute};margin-bottom:4px;">Mix request received</div>
+                    <div style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:21px;color:${C.ink};">
+                      ${submission.name}&rsquo;s ${submission.purpose} &middot; side A
+                    </div>
+                  </td>
+                  <td align="right" valign="top">
+                    <span style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:${C.inkMute};">${label}</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- intro -->
+          <tr>
+            <td style="padding:28px 24px 24px;border-bottom:1px solid ${C.hairline};">
+              <p style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.6;color:${C.ink};">
+                Hey ${submission.name} — your mix request is in. I&rsquo;ll review your ${filled} track${filled === 1 ? "" : "s"} and reach out once it&rsquo;s ready.
+              </p>
+              <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.6;color:${C.ink};">
+                In the meantime, feel free to reply to this email if anything changes or you have questions.
+              </p>
+            </td>
+          </tr>
+
+          <!-- meta -->
+          <tr>
+            <td style="border-bottom:1px solid ${C.hairline};">
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  ${metaCell("Name", submission.name, true)}
+                  ${metaCell("Email", submission.email, true)}
+                  ${metaCell("Occasion", submission.purpose)}
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- tracks -->
+          <tr>
+            <td>
+              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="padding:4px 0;">
+                ${trackRows(submission)}
+              </table>
+            </td>
+          </tr>
+
+          <!-- footer -->
+          <tr>
+            <td style="background:${C.paperDeep};padding:16px 22px;border-top:1px solid ${C.hairline};">
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:${C.inkMute};">
+                    Run time &middot; ${durationLabel(totalDuration)} across ${filled} track${filled === 1 ? "" : "s"}
+                  </td>
+                  <td align="right" style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:${C.inkMute};">
+                    ID &middot; ${submissionId}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+export function buildConfirmationTextEmail(submission: MixSubmission, submissionId: string): string {
+  const label = submissionLabel(submissionId);
+  const totalDuration = submission.songs.reduce(
+    (acc, s) => acc + Math.max(0, s.endTime - s.startTime),
+    0
+  );
+  const filled = submission.songs.filter((s) => s.url).length;
+
+  const songLines = submission.songs
+    .map((song, i) => {
+      const dur = Math.max(0, song.endTime - song.startTime);
+      const lines: string[] = [];
+      if (song.transitionNotes) lines.push(`  → ${song.transitionNotes}`);
+      lines.push(`Track ${String(i + 1).padStart(2, "0")}${song.title ? ` · ${song.title}` : ""}`);
+      lines.push(`  URL:  ${song.url || "—"}`);
+      lines.push(`  Clip: ${formatTime(song.startTime)} – ${formatTime(song.endTime)} (${formatTime(dur)})`);
+      if (song.songNotes) lines.push(`  Note: ${song.songNotes}`);
+      return lines.join("\n");
+    })
+    .join("\n\n");
+
+  return [
+    `Hey ${submission.name},`,
+    "",
+    `Your mix request is in — ${filled} track${filled === 1 ? "" : "s"} for your ${submission.purpose}.`,
+    `I'll review it and reach out once it's ready.`,
+    "",
+    `Feel free to reply to this email if anything changes or you have questions.`,
+    "",
+    `Name:      ${submission.name}`,
+    `Email:     ${submission.email}`,
+    `Occasion:  ${submission.purpose}`,
+    "",
+    "Tracks",
+    "──────",
+    songLines,
+    "",
+    `Run time:  ${durationLabel(totalDuration)} across ${filled} track${filled === 1 ? "" : "s"}`,
+    `Reference: ${label}`,
+    `ID:        ${submissionId}`,
+    "",
+    "— MakeMeAMix",
   ].join("\n");
 }

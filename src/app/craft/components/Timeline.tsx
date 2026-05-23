@@ -123,7 +123,7 @@ function TrackCard({
   canMoveR,
 }: TrackCardProps) {
   const dur = Math.max(0, track.endTime - track.startTime);
-  const filled = !!track.youtubeUrl && dur > 0;
+  const filled = !!track.url && dur > 0;
   return (
     <div
       onClick={onClick}
@@ -193,7 +193,7 @@ function TrackCard({
                 className="truncate text-ink"
                 style={{ fontFamily: "var(--font-display)", fontSize: 16, lineHeight: 1.2 }}
               >
-                {track.title || extractDomain(track.youtubeUrl)}
+                {track.title || extractDomain(track.url)}
               </span>
               <span className="font-mono tabular-nums text-ink-mute" style={{ fontSize: 11 }}>
                 {formatTime(track.startTime)} → {formatTime(track.endTime)} · {formatTime(dur)}

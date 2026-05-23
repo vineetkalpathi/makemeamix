@@ -1,7 +1,8 @@
 import type { SongComponent, TransitionNote } from "@/app/craft/types";
 
 export interface MixSong {
-  youtubeUrl: string;
+  url: string;
+  title: string; // display title — not persisted to storage
   startTime: number; // seconds
   endTime: number; // seconds
   songNotes: string;
@@ -50,7 +51,8 @@ export function buildMixSubmission(params: {
         : "";
 
     return {
-      youtubeUrl: song.youtubeUrl,
+      url: song.url,
+      title: song.title,
       startTime: song.startTime,
       endTime: song.endTime,
       songNotes: song.notes,

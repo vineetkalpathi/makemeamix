@@ -1,6 +1,12 @@
 import nodemailer from "nodemailer";
 import type { MixSubmission } from "@/lib/storage/types";
-import { buildHtmlEmail, buildTextEmail, submissionLabel } from "./templates/submission";
+import {
+  buildHtmlEmail,
+  buildTextEmail,
+  buildConfirmationHtmlEmail,
+  buildConfirmationTextEmail,
+  submissionLabel,
+} from "./templates/submission";
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -22,5 +28,19 @@ export async function sendSubmissionEmail(
     subject: `New mix request from ${submission.name} [${submissionLabel(submissionId)}]`,
     text: buildTextEmail(submission, submissionId),
     html: buildHtmlEmail(submission, submissionId),
+  });
+}
+
+export async function sendConfirmationEmail(
+  submission: MixSubmission,
+  submissionId: string
+): Promise<void> {
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    replyTo: process.env.SMTP_REPLY_TO,
+    to: submission.email,
+    subject: `Your mix request [${submissionLabel(submissionId)}]`,
+    text: buildConfirmationTextEmail(submission, submissionId),
+    html: buildConfirmationHtmlEmail(submission, submissionId),
   });
 }

@@ -32,7 +32,7 @@ export default async function CraftSuccessPage() {
     (acc, s) => acc + Math.max(0, s.endTime - s.startTime),
     0
   ) ?? 0;
-  const filled = submission?.songs.filter((s) => s.youtubeUrl).length ?? 0;
+  const filled = submission?.songs.filter((s) => s.url).length ?? 0;
   const submissionLabel = submission
     ? `MMX-${submission.submissionId.slice(0, 4).toUpperCase()}-A1`
     : "MMX-0000-A1";
@@ -183,20 +183,20 @@ export default async function CraftSuccessPage() {
                           >
                             TRACK {String(i + 1).padStart(2, "0")}
                           </span>
-                          {song.title || song.youtubeUrl || "Untitled"}
+                          {song.title || song.url || "Untitled"}
                         </span>
                         <span
                           className="font-mono tabular-nums text-ink-mute"
                           style={{ fontSize: 11 }}
                         >
-                          {song.youtubeUrl ? (
+                          {song.url ? (
                             <a
                               className="hover:underline"
-                              href={song.youtubeUrl}
+                              href={song.url}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              {trimLink(song.youtubeUrl)}
+                              {trimLink(song.url)}
                             </a>
                           ) : (
                             "—"
