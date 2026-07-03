@@ -31,7 +31,7 @@ export function TrackDetail({
   const [currentTime, setCurrentTime] = useState(track.startTime);
   const [seekRequest, setSeekRequest] = useState(0);
 
-  const videoId = parseYouTubeId(track.youtubeUrl);
+  const videoId = parseYouTubeId(track.url);
   const previousIdRef = useRef(track.id);
   const previousVideoIdRef = useRef(videoId);
 
@@ -274,8 +274,8 @@ function SourceField({
   track: SongComponent;
   onChange: (patch: Partial<SongComponent>) => void;
 }) {
-  const isYT = !!parseYouTubeId(track.youtubeUrl);
-  const isSpotify = /open\.spotify\.com/.test(track.youtubeUrl);
+  const isYT = !!parseYouTubeId(track.url);
+  const isSpotify = /open\.spotify\.com/.test(track.url);
   const sourceLabel = isYT ? "YouTube" : isSpotify ? "Spotify (coming soon)" : "Source link";
 
   return (
@@ -312,8 +312,8 @@ function SourceField({
         <input
           className="font-mono"
           placeholder="https://youtu.be/…"
-          value={track.youtubeUrl}
-          onChange={(e) => onChange({ youtubeUrl: e.target.value })}
+          value={track.url}
+          onChange={(e) => onChange({ url: e.target.value })}
           style={{
             flex: 1,
             border: 0,

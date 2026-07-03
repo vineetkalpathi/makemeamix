@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import type { SubmitMixState, SongComponent, TransitionNote } from "./types";
 import { getStorageProvider } from "@/lib/storage";
 import { buildMixSubmission } from "@/lib/storage/types";
+import { sendSubmissionEmail, sendConfirmationEmail } from "@/lib/email";
 
 export async function submitMix(
   previousState: SubmitMixState,
@@ -66,11 +67,23 @@ export async function submitMix(
   try {
     submissionId = await storage.saveSubmission(submission);
   } catch (error) {
-    console.error("Failed to save mix submission:", error);
+    console.error("[actions/submitMix] storage.saveSubmission failed — requester email:", email, error);
     return {
       success: false,
       message: "Failed to save submission. Please contact us if this issue persists.",
     };
+  }
+
+  try {
+    await sendSubmissionEmail(submission, submissionId);
+  } catch (error) {
+    console.error("[actions/submitMix] email.sendSubmissionEmail failed — submissionId:", submissionId, error);
+  }
+
+  try {
+    await sendConfirmationEmail(submission, submissionId);
+  } catch (error) {
+    console.error("[actions/submitMix] email.sendConfirmationEmail failed — submissionId:", submissionId, error);
   }
 
   const cookieStore = await cookies();

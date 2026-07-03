@@ -1,6 +1,6 @@
 export interface SongComponent {
   id: string;
-  youtubeUrl: string;
+  url: string;
   title: string;
   startTime: number;
   endTime: number;
