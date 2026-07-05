@@ -12,6 +12,7 @@ export default function Nav() {
         </span>
       </Link>
       <div className="nav-links">
+        <Link href="/examples">Examples</Link>
         <ThemeToggle />
         <Link href="/craft" className="btn btn-sm btn-primary">
           Craft a mix
